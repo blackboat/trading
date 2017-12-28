@@ -22,16 +22,17 @@ def index(request):
 			tmp = []
 			for i in range(len(data['dates'])):
 				tmp.append([data['dates'][i]] + [data[c][i] for c in currency])
-				if i != len(data['dates']) - 1:
-					cur = data['dates'][i].split(' ')[0]
-					cur = datetime.datetime.strptime(cur, '%Y-%m-%d')
-					next = data['dates'][i+1].split(' ')[0]
-					next = datetime.datetime.strptime(next, '%Y-%m-%d')
-					diff = next - cur
-					if diff.days > 1:
-						for j in range(diff.days-1):
-							next = cur + datetime.timedelta(j+1)
-							tmp.append([next.strftime('%Y-%m-%d %H:%M:%S')] + [data[c][i] for c in currency])
+				if interval == 'daily':
+					if i != len(data['dates']) - 1:
+						cur = data['dates'][i].split(' ')[0]
+						cur = datetime.datetime.strptime(cur, '%Y-%m-%d')
+						next = data['dates'][i+1].split(' ')[0]
+						next = datetime.datetime.strptime(next, '%Y-%m-%d')
+						diff = next - cur
+						if diff.days > 1:
+							for j in range(diff.days-1):
+								next = cur + datetime.timedelta(j+1)
+								tmp.append([next.strftime('%Y-%m-%d %H:%M:%S')] + [data[c][i] for c in currency])
 
 			with open('media/data.csv', 'w') as csv_file:
 				writer = csv.writer(csv_file)
