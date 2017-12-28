@@ -7,8 +7,11 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
   <link href="//cdn.rawgit.com/Eonasdan/bootstrap-datetimepicker/e8bddc60e73c1ec2475f827be36e1957af72e2ea/build/css/bootstrap-datetimepicker.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap.min.css" rel="stylesheet">
   <script type="text/javascript" src="//code.jquery.com/jquery-2.1.1.min.js"></script>
   <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap.min.js"></script>
   <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.9.0/moment-with-locales.js"></script>
   <script src="//cdn.rawgit.com/Eonasdan/bootstrap-datetimepicker/e8bddc60e73c1ec2475f827be36e1957af72e2ea/src/js/bootstrap-datetimepicker.js"></script>
 </head>
@@ -16,42 +19,44 @@
 
 <div class="container">
   <h2>Currency Data</h2>
-  <form method="POST">
-    {% csrf_token %}
-    <div class="row">
-      <div class="col-sm-4">
-        <div class="form-group">
-          <label for="start_date">Start Date:</label>
-            <input type="text" name="start_date" class="form-control" id="datetimepickerfrom" />
+  <div style="margin-bottom: 30px;">
+    <form method="POST">
+      {% csrf_token %}
+      <div class="row">
+        <div class="col-sm-4">
+          <div class="form-group">
+            <label for="start_date">Start Date:</label>
+              <input type="text" name="start_date" class="form-control" id="datetimepickerfrom" {% if start_date %}value="{{ start_date }}"{% endif %} />
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="form-group">
+            <label for="end_date">End Date:</label>
+            <input type="text" name="end_date" class="form-control" id="datetimepickerto" {% if end_date %}value="{{ end_date }}"{% endif %} />
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="form-group">
+            <label for="sel1">Interval:</label>
+            <select class="form-control" name="interval" id="interval">
+              <option {% if interval == 'hour' %}selected="selected"{% endif %}>hour</option>
+              <option {% if interval == 'daily' %}selected="selected"{% endif %}>daily</option>
+              <option {% if interval == 'weekly' %}selected="selected"{% endif %}>weekly</option>
+              <option {% if interval == 'monthly' %}selected="selected"{% endif %}>monthly</option>
+            </select>
+          </div>
         </div>
       </div>
-      <div class="col-sm-4">
-        <div class="form-group">
-          <label for="end_date">End Date:</label>
-          <input type="text" name="end_date" class="form-control" id="datetimepickerto" />
-        </div>
+      <div class="row" style="text-align: center;">
+        <input type="submit" class="btn btn-default" value="Submit">
       </div>
-      <div class="col-sm-4">
-        <div class="form-group">
-          <label for="sel1">Interval:</label>
-          <select class="form-control" name="interval" id="interval">
-            <option>hour</option>
-            <option>daily</option>
-            <option>weekly</option>
-            <option>monthly</option>
-          </select>
-        </div>
-      </div>
-    </div>
-    <div class="row" style="text-align: center;">
-      <input type="submit" class="btn-primary" value="Submit">
-    </div>
-  </form>
-  <p>Data:</p>
+    </form>
+  </div>
+  
   {% if error %}
     <div style="color: red;">Eikon API Proxy is shutdown on server!</div>
-  {% else %}
-    <table class="table table-striped">
+  {% elif data %}
+    <table class="table table-striped" id="data">
       <thead>
         <tr>
           <th>DateTime</th>
@@ -70,8 +75,19 @@
         {% endfor %}
       </tbody>
     </table>
-</div>
-{% endif %}
+
+    <div class="row" style="margin-top: 50px;">
+      <div class="col-sm-2">
+        <a href="/media/data.csv" class="btn btn-success" download />Download</a>
+      </div>
+      <div class="col-sm-2">
+        <input id="uploadS3" type="button" class="btn btn-success" value="Upload to S3" />
+      </div>
+      <div class="col-sm-2">
+        <input type="button" class="btn btn-success" value="Store in DB" />
+      </div>
+    </div>
+  {% endif %}
 <script type="text/javascript">
   $(function () {
     $('#datetimepickerfrom').datetimepicker({
@@ -79,6 +95,16 @@
     });
     $('#datetimepickerto').datetimepicker({
       format: 'YYYY-MM-DD'
+    });
+    $('#data').DataTable({
+      "order": [[ 0, "desc" ]]
+    });
+    $('#uploadS3').click(function() {
+      $.ajax({
+        url: '/s3',
+      }).done(function() {
+        alert("Data is uploaded to S3.")
+      });
     });
   });
 </script>
