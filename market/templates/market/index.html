@@ -40,7 +40,7 @@
             <label for="sel1">Interval:</label>
             <select class="form-control" name="interval" id="interval">
               <option {% if interval == 'hour' %}selected="selected"{% endif %}>hour</option>
-              <option {% if interval == 'daily' %}selected="selected"{% endif %}>daily</option>
+              <option {% if interval == 'daily' or not interval %}selected="selected"{% endif %}>daily</option>
               <option {% if interval == 'weekly' %}selected="selected"{% endif %}>weekly</option>
               <option {% if interval == 'monthly' %}selected="selected"{% endif %}>monthly</option>
             </select>
@@ -54,22 +54,22 @@
   </div>
   
   {% if error %}
-    <div style="color: red;">Eikon API Proxy is shutdown on server!</div>
+    <div style="color: red;">{{ error }}</div>
   {% elif data %}
     <table class="table table-striped" id="data">
       <thead>
         <tr>
           <th>DateTime</th>
-          {% for row in currency %}
+          {% for row in codes %}
           <th>{{ row }}</th>
           {% endfor %}
         </tr>
       </thead>
       <tbody>
         {% for rows in data %}
-        <tr>
+        <tr class="row-{{ rows.0 }}">
           {% for row in rows %}
-          <td>{{ row }}</td>
+          {% if forloop.counter != 1 %}<td>{{ row }}</td>{% endif %}
           {% endfor %}
         </tr>
         {% endfor %}
@@ -78,23 +78,27 @@
 
     <div class="row" style="margin-top: 50px;">
       <div class="col-sm-2">
-        <a href="/media/data.csv" class="btn btn-success" download />Download</a>
+        <a href="/media/data.csv" class="btn btn-success" download />Download CSV</a>
       </div>
       <div class="col-sm-2">
         <input id="uploadS3" type="button" class="btn btn-success" value="Upload to S3" />
       </div>
       <div class="col-sm-2">
-        <input type="button" class="btn btn-success" value="Store in DB" />
+        <input id="store" type="button" class="btn btn-success" value="Store in DB" />
       </div>
     </div>
   {% endif %}
 <script type="text/javascript">
   $(function () {
     $('#datetimepickerfrom').datetimepicker({
-      format: 'YYYY-MM-DD'
+      viewMode: 'years',
+      format: 'YYYY-MM-DD',
+      defaultDate: "2005-01-01",
     });
     $('#datetimepickerto').datetimepicker({
-      format: 'YYYY-MM-DD'
+      viewMode: 'years',
+      format: 'YYYY-MM-DD',
+      defaultDate: "2005-01-01",
     });
     $('#data').DataTable({
       "order": [[ 0, "desc" ]]
@@ -103,7 +107,26 @@
       $.ajax({
         url: '/s3',
       }).done(function() {
-        alert("Data is uploaded to S3.")
+        alert("Data is uploaded to S3.");
+      });
+    });
+    $('#store').click(function() {
+      start_date = $('#datetimepickerfrom').val();
+      end_date = $('#datetimepickerto').val();
+      interval = $('#interval').val();
+      $.ajax({
+        url: '{% url "store" %}',
+        type: 'post',
+        data: {
+          'start_date': start_date,
+          'end_date': end_date,
+          'interval': interval,
+        }
+      }).done(function(res) {
+        if (res == 'Success')
+          alert("Data is stored to database.");
+        else
+          alert(res);
       });
     });
   });
