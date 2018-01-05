@@ -27,21 +27,33 @@ def index(request):
 			return render(request, 'market/index.html', context)
 
 		currency = ['EUR=', 'JPY=', 'GBP=', 'CHF=', 'CAD=', 'AUD=', 'NZD=',	'SEK=', 'NOK=',	'CZK=', 'HUF=',	'PLN=']
-		codes = [row.code for row in RICCode.objects.all()]
+		code_list = [row.code for row in RICCode.objects.all()]
+		n = 10
+		codes = code_list[:n]
 		url = 'http://54.152.240.172/market/?codes=%s&start_date=%s&end_date=%s&interval=%s' % (urllib.parse.quote(','.join(codes)), start_date, end_date, interval)
 		req = requests.get(url)
 		if req.status_code == 200:
 			data = json.loads(req.text)
-			tmp = get_formatted_data(data, codes)
+			for i in range(n, len(code_list), n):
+				codes = code_list[i:i+n]
+				url = 'http://54.152.240.172/market/?codes=%s&start_date=%s&end_date=%s&interval=%s' % (urllib.parse.quote(','.join(codes)), start_date, end_date, interval)
+				req = requests.get(url)
+				if req.status_code != 200:
+					context = {
+						'error': 'Eikon API Proxy is shutdown on server!',
+					}
+					return render(request, 'market/index.html', context)
+				data.update(json.loads(req.text))
+			tmp = get_formatted_data(data, code_list)
 
 			with open('media/data.csv', 'w') as csv_file:
 				writer = csv.writer(csv_file)
-				writer.writerow(['TimeStamp'] + codes)
+				writer.writerow(['TimeStamp'] + code_list)
 				for row in tmp[1:]:
 					writer.writerow(row)
 			context = {
 				'data': tmp,
-				'codes': codes,
+				'codes': code_list,
 				'start_date': start_date,
 				'end_date': end_date,
 				'interval': interval,
@@ -65,17 +77,6 @@ def get_formatted_data(data, codes):
 			else:
 				vals.append(data[c][i])
 		tmp.append(['W', data['dates'][i]] + vals)
-		# if interval == 'daily':
-		# 	if i != len(data['dates']) - 1:
-		# 		cur = data['dates'][i].split(' ')[0]
-		# 		cur = datetime.datetime.strptime(cur, '%Y-%m-%d')
-		# 		next = data['dates'][i+1].split(' ')[0]
-		# 		next = datetime.datetime.strptime(next, '%Y-%m-%d')
-		# 		diff = next - cur
-		# 		if diff.days > 1:
-		# 			for j in range(diff.days-1):
-		# 				next = cur + datetime.timedelta(j+1)
-		# 				tmp.append(['A', next.strftime('%Y-%m-%d %H:%M:%S')] + [data[c][i] for c in currency])
 	return tmp
 
 
