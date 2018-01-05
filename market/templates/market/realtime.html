@@ -19,40 +19,6 @@
 
 <div class="container">
   <h2>Data</h2>
-  <div style="margin-bottom: 30px;">
-    <form method="POST">
-      {% csrf_token %}
-      <div class="row">
-        <div class="col-sm-4">
-          <div class="form-group">
-            <label for="start_date">Start Date:</label>
-              <input type="text" name="start_date" class="form-control" id="datetimepickerfrom" {% if start_date %}value="{{ start_date }}"{% endif %} />
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="form-group">
-            <label for="end_date">End Date:</label>
-            <input type="text" name="end_date" class="form-control" id="datetimepickerto" {% if end_date %}value="{{ end_date }}"{% endif %} />
-          </div>
-        </div>
-        <div class="col-sm-4">
-          <div class="form-group">
-            <label for="sel1">Interval:</label>
-            <select class="form-control" name="interval" id="interval">
-              <option {% if interval == 'hour' %}selected="selected"{% endif %}>hour</option>
-              <option {% if interval == 'daily' or not interval %}selected="selected"{% endif %}>daily</option>
-              <option {% if interval == 'weekly' %}selected="selected"{% endif %}>weekly</option>
-              <option {% if interval == 'monthly' %}selected="selected"{% endif %}>monthly</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="row" style="text-align: center;">
-        <input type="submit" class="btn btn-default" value="Submit">
-      </div>
-    </form>
-  </div>
-  
   {% if error %}
     <div style="color: red;">{{ error }}</div>
   {% elif data %}
@@ -76,17 +42,6 @@
       </tbody>
     </table>
 
-    <div class="row" style="margin-top: 50px;">
-      <div class="col-sm-2">
-        <a href="/media/data.csv" class="btn btn-success" download />Download CSV</a>
-      </div>
-      <div class="col-sm-2">
-        <input id="uploadS3" type="button" class="btn btn-success" value="Upload to S3" />
-      </div>
-      <div class="col-sm-2">
-        <input id="store" type="button" class="btn btn-success" value="Store in DB" />
-      </div>
-    </div>
   {% endif %}
 <script type="text/javascript">
   $(function () {

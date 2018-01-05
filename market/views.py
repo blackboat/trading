@@ -67,6 +67,33 @@ def index(request):
 	return render(request, 'market/index.html')
 
 
+def realtime(request):
+	interval = 'tick'
+	now = datetime.datetime.utcnow()
+	end_date = now.strftime("%Y-%m-%d %H:%M:%S")
+	start_date = (now-datetime.timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M:%S")
+	# code_list = ['EUR=', 'JPY=', 'GBP=', 'CHF=', 'CAD=', 'AUD=', 'NZD=', 'SEK=', 'NOK=', 'CZK=', 'HUF=', 'PLN=']
+	code_list = ['EUR=', 'JPY=']
+	url = 'http://54.152.240.172/market/?codes=%s&start_date=%s&end_date=%s&interval=%s' % (urllib.parse.quote(','.join(code_list)), start_date, end_date, interval)
+	req = requests.get(url)
+	if req.status_code == 200:
+		data = json.loads(req.text)
+		tmp = get_formatted_data(data, code_list)
+		context = {
+			'data': tmp,
+			'codes': code_list,
+			'start_date': start_date,
+			'end_date': end_date,
+			'interval': interval,
+			'error': 'Non-business day!',
+		}
+	else:
+		context = {
+			'error': 'Non-business day!',
+		}
+	return render(request, 'market/realtime.html', context)
+
+
 def get_formatted_data(data, codes):
 	tmp = []
 	for i in range(len(data['dates'])):
