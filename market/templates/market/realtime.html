@@ -25,65 +25,34 @@
     <table class="table table-striped" id="data">
       <thead>
         <tr>
-          <th>DateTime</th>
           {% for row in codes %}
           <th>{{ row }}</th>
           {% endfor %}
         </tr>
       </thead>
       <tbody>
-        {% for rows in data %}
-        <tr class="row-{{ rows.0 }}">
-          {% for row in rows %}
-          {% if forloop.counter != 1 %}<td>{{ row }}</td>{% endif %}
+        <tr class="data">
+          {% for row in data %}
+          <td>{{ row }}</td>
           {% endfor %}
         </tr>
-        {% endfor %}
       </tbody>
     </table>
 
   {% endif %}
 <script type="text/javascript">
   $(function () {
-    $('#datetimepickerfrom').datetimepicker({
-      viewMode: 'years',
-      format: 'YYYY-MM-DD',
-      defaultDate: "2005-01-01",
-    });
-    $('#datetimepickerto').datetimepicker({
-      viewMode: 'years',
-      format: 'YYYY-MM-DD',
-      defaultDate: "2005-01-01",
-    });
-    $('#data').DataTable({
-      "order": [[ 0, "desc" ]]
-    });
-    $('#uploadS3').click(function() {
+    setInterval(function() {
       $.ajax({
-        url: '/s3',
-      }).done(function() {
-        alert("Data is uploaded to S3.");
-      });
-    });
-    $('#store').click(function() {
-      start_date = $('#datetimepickerfrom').val();
-      end_date = $('#datetimepickerto').val();
-      interval = $('#interval').val();
-      $.ajax({
-        url: '{% url "store" %}',
-        type: 'post',
-        data: {
-          'start_date': start_date,
-          'end_date': end_date,
-          'interval': interval,
+        url: "{% url 'get_realtime' %}",
+        success: function(result) {
+          $('.data').empty();
+          for (i=0; i < result['data'].length; i++) {
+            $('.data').append('<td>'+result['data'][i]+'</td>')
+          }
         }
-      }).done(function(res) {
-        if (res == 'Success')
-          alert("Data is stored to database.");
-        else
-          alert(res);
       });
-    });
+    }, 30000);
   });
 </script>
 </body>
