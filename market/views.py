@@ -54,6 +54,13 @@ def index(request):
 
 
 def realtime(request):
+	if request.method == "POST":
+		codes = request.POST.get('codes', None)
+		if codes:
+			codes = codes.split(',')
+			for code in codes:
+				RICCode.objects.get_or_create(code=code.strip())
+
 	code_list = [row.code for row in RICCode.objects.all()]
 	realtime_vals = get_realtime_data(code_list)
 	if realtime_vals:
@@ -69,7 +76,6 @@ def realtime(request):
 
 
 def get_realtime(request):
-	# code_list = ['EUR=', 'JPY=']
 	code_list = [row.code for row in RICCode.objects.all()]
 	realtime_vals = get_realtime_data(code_list)
 	data = {'data': [realtime_vals[code] for code in code_list]}
