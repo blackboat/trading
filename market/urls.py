@@ -8,4 +8,5 @@ urlpatterns = [
 	path('get_realtime', views.get_realtime, name='get_realtime'),
 	path('s3', views.s3, name='s3'),
 	path('store', views.store, name='store'),
+	path('ric_codes', views.ric_codes, name='ric_codes'),
 ]

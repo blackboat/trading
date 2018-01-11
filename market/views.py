@@ -216,3 +216,7 @@ def store(request):
 		Daily.objects.bulk_create(dailys)
 		return HttpResponse('Success')
 	return HttpResponse('Eikon API Proxy is shutdown on server!')
+
+def ric_codes(request):
+	code_list = [row.code for row in RICCode.objects.all()]
+	return JsonResponse({'data': code_list})
