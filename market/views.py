@@ -220,3 +220,11 @@ def store(request):
 def ric_codes(request):
 	code_list = [row.code for row in RICCode.objects.all()]
 	return JsonResponse({'data': code_list})
+
+def update_codes(request):
+	codes = request.GET.get('codes', None)
+	codes = codes.split(',')
+	for code in codes:
+		RICCode.objects.get_or_create(code=code.strip())
+	code_list = [row.code for row in RICCode.objects.all()]
+	return JsonResponse({'data': code_list})
